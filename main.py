@@ -7,72 +7,58 @@ import config
 
 
 def natural_sort(items):
-    convert = lambda text: int(text) if text.isdigit() else text.lower()
-    alphanum_key = lambda key: [convert(c) for c in re.split("([0-9]+)", key)]
-    return sorted(items, key=alphanum_key)
+    def generate_sort_key(item):
+        parts = re.split(r"(\d+)", item)
+        return [int(part) if part.isdigit() else part.lower() for part in parts]
+
+    return sorted(items, key=generate_sort_key)
 
 
-def get_episodes(title_dir, extensions=("mp4", "avi", "mkv")):
-    if title_dir == ".":
-        full_path = config.main_dir
-    else:
-        full_path = os.path.join(config.main_dir, title_dir)
-
-    if not os.path.isdir(full_path):
-        return []
-
+def get_episodes(path, extensions=("mp4", "avi", "mkv")):
     video_files = []
-
-    for item in os.listdir(full_path):
-        item_path = os.path.join(full_path, item)
-
-        if os.path.isfile(item_path):
-            file_extension = item.split(".")[-1].lower()
+    for item in os.listdir(path):
+        file = os.path.join(path, item)
+        if os.path.isfile(file):
+            file_extension = file.split(".")[-1].lower()
             if file_extension in extensions:
-                video_files.append(item)
-
-        elif os.path.isdir(item_path):
-            for subitem in os.listdir(item_path):
-                subitem_path = os.path.join(item_path, subitem)
-
-                if os.path.isfile(subitem_path):
-                    file_extension = subitem.split(".")[-1].lower()
-                    if file_extension in extensions:
-                        video_files.append(os.path.join(item, subitem))
+                video_files.append(file)
 
     return natural_sort(video_files)
 
 
-title_list = [
-    item
-    for item in os.listdir(config.main_dir)
-    if os.path.isdir(os.path.join(config.main_dir, item))
-]
+title_list = []
+for dir0 in os.listdir(config.main_dir):
+    path_level1 = os.path.join(config.main_dir, dir0)
+    if os.path.isdir(path_level1):
+        title_list.append(path_level1)
+        for dir1 in os.listdir(path_level1):
+            path_level2 = os.path.join(path_level1, dir1)
+            if os.path.isdir(path_level2):
+                title_list.append(path_level2)
 title_list = natural_sort(title_list)
 
+
 title_dict = {}
-root_episodes = get_episodes(".")
+
+root_episodes = get_episodes(config.main_dir)
 if root_episodes:
-    title_dict["!"] = root_episodes
+    title_dict[config.main_dir] = root_episodes
 
 for title in title_list:
     episodes = get_episodes(title)
     if episodes:
         title_dict[title] = episodes
 
-print(title_dict)
 
 playlist_files = []
 while title_dict:
     cur_title = random.choice(list(title_dict.keys()))
     ep = title_dict[cur_title].pop(0)
-    if cur_title != "!":
-        file_path = os.path.join(config.main_dir, cur_title, ep)
-    else:
-        file_path = os.path.join(config.main_dir, ep)
-    playlist_files.append(file_path)
+    playlist_files.append(ep)
+
     if not title_dict[cur_title]:
         del title_dict[cur_title]
+
 
 print(playlist_files)
 
