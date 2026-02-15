@@ -22,7 +22,6 @@ def get_episodes(path, extensions=("mp4", "avi", "mkv")):
             file_extension = file.split(".")[-1].lower()
             if file_extension in extensions:
                 video_files.append(file)
-
     return natural_sort(video_files)
 
 
@@ -64,39 +63,30 @@ for dir_group in title_list_with_subs:
 
     for sub_dir in dir_group[1:]:
         episodes = get_episodes(sub_dir)
-        title_dict[cur][os.path.basename(sub_dir)] = episodes
+        if episodes:
+            title_dict[cur][os.path.basename(sub_dir)] = episodes
 
     episodes = get_episodes(cur)
     title_dict[cur]["root"] = episodes
 
-for t, seasons in title_dict.items():
-    print(t, "\n", seasons)
+playlist_files = []
 
+while title_dict:
+    cur_title = random.choice(list(title_dict.keys()))
+    season_key = list(title_dict[cur_title].keys())[0]
 
-# title_dict = {}
+    ep = title_dict[cur_title][season_key][0]
+    playlist_files.append(ep)
 
-# root_episodes = get_episodes(config.main_dir)
-# if root_episodes:
-#     title_dict[config.main_dir] = root_episodes
+    title_dict[cur_title][season_key].pop(0)
 
-# for title in title_list:
-#     episodes = get_episodes(title)
-#     if episodes:
-#         title_dict[title] = episodes
+    if not title_dict[cur_title][season_key]:
+        del title_dict[cur_title][season_key]
 
-# print(title_dict)
+    if not title_dict[cur_title]:
+        del title_dict[cur_title]
 
-# playlist_files = []
-# while title_dict:
-#     cur_title = random.choice(list(title_dict.keys()))
-#     ep = title_dict[cur_title].pop(0)
-#     playlist_files.append(ep)
-
-#     if not title_dict[cur_title]:
-#         del title_dict[cur_title]
-
-
-# for i in playlist_files:
-#     print(i)
+for i in playlist_files:
+    print(i)
 
 # subprocess.Popen(["vlc", "--play-and-exit"] + playlist_files)
