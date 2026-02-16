@@ -29,5 +29,5 @@ def find_subdir(dir_list):
             path = os.path.join(dir, sub_dir)
             if os.path.isdir(path):
                 sub_dirs.append(path)
-        found_dirs.append(sub_dirs)
+        found_dirs.append(natural_sort(sub_dirs))
     return found_dirs
