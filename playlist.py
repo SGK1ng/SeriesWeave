@@ -1,11 +1,8 @@
 import copy
-import logging
 import os
 import random
 
 from file_utils import find_subdir, get_episodes, natural_sort
-
-logger = logging.getLogger(__name__)
 
 
 def build_title_dict(main_dir):
@@ -30,19 +27,14 @@ def build_title_dict(main_dir):
         title_dict[cur] = {}
 
         for sub_dir in dir_group[1:]:
-            try:
-                episodes = get_episodes(sub_dir)
-                if episodes:
-                    title_dict[cur][os.path.basename(sub_dir)] = episodes
-            except Exception as e:
-                logger.warning(f"Skipping {sub_dir}: {e}")
-
-        try:
-            episodes = get_episodes(cur)
+            episodes = get_episodes(sub_dir)
             if episodes:
-                title_dict[cur]["root"] = episodes
-        except Exception as e:
-            logger.warning(f"Skipping the root {cur}: {e}")
+                title_dict[cur][os.path.basename(sub_dir)] = episodes
+
+        episodes = get_episodes(cur)
+
+        if episodes:
+            title_dict[cur]["root"] = episodes
 
         if not title_dict[cur]:
             del title_dict[cur]
@@ -76,8 +68,3 @@ def generate_playlist(title_dict):
             del title_dict[cur_title]
 
     return playlist_files
-
-
-def print_playlist(playlist_files):
-    for file in playlist_files:
-        print(file)

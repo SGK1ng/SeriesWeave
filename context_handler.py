@@ -1,20 +1,15 @@
-import logging
+import ctypes
 import os
 import sys
 
-logger = logging.getLogger(__name__)
-
 
 def get_context():
-    try:
-        if len(sys.argv) > 1 and os.path.isdir(sys.argv[1]):
-            return sys.argv[1]
-        else:
-            logger.warning("No directory passed or path is not a directory")
-            return None
-    except Exception as e:
-        logger.warning(f"Some error: {e}")
-        return None
+    if len(sys.argv) > 1 and os.path.isdir(sys.argv[1]):
+        return sys.argv[1]
+    ctypes.windll.user32.MessageBoxW(
+        0, "No directory passed or path is not a directory", "Error", 0x10
+    )
+    raise ValueError("No directory provided")
 
 
 def create_save(save_path, playlist):
@@ -26,26 +21,44 @@ def create_save(save_path, playlist):
         with open(save_path, "w", encoding="utf-8") as f:
             f.write("\n".join(playlist))
 
-        logger.info(f"Playlist saved to {save_path}")
-
     except Exception as e:
-        logger.error(f"Error saving playlist: {e}")
+        ctypes.windll.user32.MessageBoxW(
+            0, f"Error saving playlist: {e}", "Error", 0x10
+        )
 
 
-def load_save(save_path):
+def load_save(save_path, extensions=("mp4", "avi", "mkv")):
     try:
-        if not os.path.exists(save_path):
-            logger.warning(f"Save file does not exist: {save_path}")
-            return []
-
         with open(save_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         playlist = [line.strip() for line in content.split("\n") if line.strip()]
 
-        logger.info(f"Loaded {len(playlist)} items from {save_path}")
-        return playlist
+        valid_playlist = []
+
+        invalid_files = []
+
+        for file in playlist:
+            if not os.path.exists(file):
+                invalid_files.append(f"Missing: {file}")
+                continue
+            if file.split(".")[-1].lower() not in extensions:
+                invalid_files.append(f"Invalid extension: {file}")
+                continue
+            valid_playlist.append(file)
+
+        if len(valid_playlist) != len(playlist):
+            ctypes.windll.user32.MessageBoxW(
+                0,
+                f"Removed {len(playlist) - len(valid_playlist)} invalid files",
+                "Error",
+                0x30,
+            )
+
+        return valid_playlist
 
     except Exception as e:
-        logger.error(f"Error loading playlist: {e}")
+        ctypes.windll.user32.MessageBoxW(
+            0, f"Error loading playlist: {e}", "Error", 0x10
+        )
         return []
