@@ -1,5 +1,6 @@
 import ctypes
 import os
+import subprocess
 
 import config
 from context_handler import create_save, get_context, load_save
@@ -28,7 +29,33 @@ if __name__ == "__main__":
         else:
             playlist = create_new_playlist()
 
-        print(playlist)
+        if playlist:
+            match config.player_path.split("/")[-1].lower():
+                case "mpc-hc64.exe" | "mpc-hc.exe":
+                    subprocess.Popen(
+                        [
+                            config.player_path,
+                            *playlist,
+                        ]
+                    )
+                case "vlc.exe":
+                    subprocess.Popen(
+                        [
+                            config.player_path,
+                            "--playlist-autostart",
+                            *playlist,
+                        ]
+                    )
+                case "kmplayer64.exe" | "kmplayer.exe":
+                    subprocess.Popen(
+                        [
+                            config.player_path,
+                            "/play",
+                            *playlist,
+                        ]
+                    )
+                case _:
+                    ctypes.windll.user32.MessageBoxW(0, "Wrong player", "Error", 0x10)
 
     except ValueError as e:
         ctypes.windll.user32.MessageBoxW(0, f"Data error: {e}", "Error", 0x10)
