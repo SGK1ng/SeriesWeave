@@ -1,6 +1,8 @@
 import os
 import re
 
+import json_loader
+
 
 def natural_sort(items):
     def generate_sort_key(item):
@@ -10,13 +12,13 @@ def natural_sort(items):
     return sorted(items, key=generate_sort_key)
 
 
-def get_episodes(path, extensions=("mp4", "avi", "mkv")):
+def get_episodes(path):
     video_files = []
     for item in os.listdir(path):
         file = os.path.join(path, item)
         if os.path.isfile(file):
             file_extension = file.split(".")[-1].lower()
-            if file_extension in extensions:
+            if file_extension in json_loader.video_extensions:
                 video_files.append(file)
     return natural_sort(video_files)
 

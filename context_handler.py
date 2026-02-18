@@ -2,6 +2,8 @@ import ctypes
 import os
 import sys
 
+import json_loader
+
 
 def get_context():
     if len(sys.argv) > 1 and os.path.isdir(sys.argv[1]):
@@ -27,7 +29,7 @@ def create_save(save_path, playlist):
         )
 
 
-def load_save(save_path, extensions=("mp4", "avi", "mkv")):
+def load_save(save_path):
     try:
         with open(save_path, "r", encoding="utf-8") as f:
             content = f.read()
@@ -42,7 +44,7 @@ def load_save(save_path, extensions=("mp4", "avi", "mkv")):
             if not os.path.exists(file):
                 invalid_files.append(f"Missing: {file}")
                 continue
-            if file.split(".")[-1].lower() not in extensions:
+            if file.split(".")[-1].lower() not in json_loader.video_extensions:
                 invalid_files.append(f"Invalid extension: {file}")
                 continue
             valid_playlist.append(file)
